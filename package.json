@@ -16,12 +16,20 @@
       {
         "command": "label.collectData",
         "title": "Collect Data"
+      },
+      {
+        "command": "label.savePaths",
+        "title": "Salva percorsi"
       }
     ],
     "keybindings": [
       {
         "command": "label.collectData",
         "key": "shift+alt+l"
+      },
+  {
+        "command": "label.savePaths",
+        "key": "shift+alt+s"
       }
     ]
   },
