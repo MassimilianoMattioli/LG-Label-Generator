@@ -66,10 +66,8 @@ export function activate(context: vscode.ExtensionContext) {
 		// Scrivi l'XML nel file specificato
 		fs.writeFile(filePath, xml, 'utf8', (err) => {
 			if (err) {
-				console.error('Errore nella scrittura del file:', err);
-				return;
+				console.error(err);
 			}
-			console.log(`File XML creato con successo in ${filePath}`);
 		});
 }
 	const dataCollector = vscode.commands.registerCommand('label.collectData', async () => {
