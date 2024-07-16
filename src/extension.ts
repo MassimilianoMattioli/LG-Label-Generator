@@ -1,41 +1,38 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as path from 'path';
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {  
-	async function selectMultipleFiles(): Promise<string[]> {
-	  const fileUris = await vscode.window.showOpenDialog({
-		canSelectMany: true,
-		openLabel: 'Seleziona file'
-	  });
-	
-	  if (fileUris && fileUris.length > 0) {
-		return fileUris.map(uri => uri.fsPath);
-	  } else {
-		return [];
-	  }
-	}
-	
-	async function selectFilePath(): Promise<string> {
+	async function selectFilePath(): Promise<string[]> {
 	  // Configura le opzioni per lo showOpenDialog
 	  const options: vscode.OpenDialogOptions = {
-		canSelectMany: false, // Permette di selezionare un solo file
+		canSelectMany: true, // Permette di selezionare più file
 		openLabel: 'Seleziona file',
-		canSelectFiles: false, // Permette la selezione di file
+		canSelectFiles: true, // Permette la selezione di file
 		canSelectFolders: false, // Non permette la selezione di cartelle
 	  };
 	
 	  // Mostra il dialogo di selezione file all'utente
-	  const fileUri = await vscode.window.showOpenDialog(options);
+	  const fileUris = await vscode.window.showOpenDialog(options);
 	  
-	  // Restituisci il path del file selezionato
-	  return fileUri && fileUri[0]?.fsPath || '';
+	  // Restituisci i path dei file selezionati
+	  return fileUris ? fileUris.map(uri => uri.fsPath) : [];
+	}
+	function estraiNomeFileDaPath(filePath: string): string {
+		// Utilizza il metodo split() per dividere il percorso del file in base al separatore di sistema
+		// e poi prendi l'ultimo elemento dell'array risultante, che sarà il nome del file
+		return filePath.split(/[/\\]/).pop() || '';
 	}
 	// Funzione per creare o aggiornare un file con le traduzioni
-	function createFile(filePath: string, value: any, name: any) {
+	async function createFile(filePath: string, name: any) {
+		var nomeFile = estraiNomeFileDaPath(filePath);
+		var value = await vscode.window.showInputBox({
+			prompt: `Inserisci la traduzione per il file ${path.basename(filePath)}`,
+		});
 		let data: { [key: string]: any } = {};
 		try {
 		// Leggi il contenuto corrente del file, se esiste
@@ -53,25 +50,18 @@ export function activate(context: vscode.ExtensionContext) {
   const dataCollector = vscode.commands.registerCommand('label.collectData', async () => {
 	// Mostra un messaggio all'utente dove si chiede di inserire i dati
 	vscode.window.showInformationMessage('Inserisci i dati per la traduzione.');
-	// Acquisci il nome della label e assegna il valore
 	var name = await vscode.window.showInputBox({ prompt: 'Inserisci la label' });
 	// Acquisisci il valore della label in italiano
-	var value = await vscode.window.showInputBox({ prompt: 'Inserisci il valore della label in italiano' });
-	// Mostra un messaggio all'utente dove si chiede di selezionare il file in cui salvare le traduzioni in italiano
-	vscode.window.showInformationMessage('Seleziona il file in cui salvare le traduzioni in italiano.');
-	// Acquisisci il percorso del file in italiano
-	var filePath = await selectFilePath();
-	createFile(filePath, value, name);
-	// Acquisisci il valore della label in inglese
-	value = await vscode.window.showInputBox({ prompt: 'Inserisci il valore della label in inglese' });
-	// Mostra un messaggio all'utente dove si chiede di selezionare il file in cui salvare le traduzioni in inglese
-	vscode.window.showInformationMessage('Seleziona il file in cui salvare le traduzioni in inglese.');
-	// Acquisisci il percorso del file in inglese
-	filePath= await selectFilePath();
-	createFile(filePath, value, name);
-
+	// Chiamata alla funzione selectFilePath e attesa del suo risultato
+	var selectedFilePaths = await selectFilePath();
+	for(var i=0; i<selectedFilePaths.length; i++){
+		await createFile(selectedFilePaths[i], name);
+	}
+	// Verifica che il risultato sia un array di stringhe
+	// Per ogni file selezionato, crea o aggiorna la traduzione
+	
 	// Mostra un messaggio all'utente per confermare che le traduzioni sono state aggiornate
-	vscode.window.showInformationMessage('Traduzioni aggiornate.');
+	await vscode.window.showInformationMessage('Traduzioni aggiornate.');
     });
 	// Aggiungi il comando alla lista dei comandi disponibili
 	context.subscriptions.push(dataCollector);
