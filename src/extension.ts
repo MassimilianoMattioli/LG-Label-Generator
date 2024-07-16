@@ -31,7 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
 	async function createFile_json(filePath: string, name: any) {
 		const nomeFile = estraiNomeFileDaPath(filePath);
 		const value = await vscode.window.showInputBox({
-			prompt: `Inserisci la traduzione per il file ${path.basename(filePath)}`,
+			prompt: `Inserisci la traduzione per il file ${path.basename(filePath, path.extname(filePath))}`,
 		});
 		
 		let data: { [key: string]: any } = {};
@@ -48,7 +48,7 @@ export function activate(context: vscode.ExtensionContext) {
 	async function createFile_xml(filePath: string, name: string) {
 		const nomeFile = estraiNomeFileDaPath(filePath);
 		const value = await vscode.window.showInputBox({
-			prompt: `Inserisci la traduzione per il file ${path.basename(filePath)}`,
+			prompt: `Inserisci la traduzione per il file ${path.basename(filePath, path.extname(filePath))}`,
 		});
 	
 		let obj;
