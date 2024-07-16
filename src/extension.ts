@@ -1,9 +1,12 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { parseStringPromise } from 'xml2js';
+import {  Builder } from 'xml2js';
+import { create } from 'xmlbuilder2';
+import * as xml2js from 'xml2js';
 
 let globalFilePaths: string[] = [];
-
 
 export function activate(context: vscode.ExtensionContext) {
 	async function selectFilePath(): Promise<string[]> {
@@ -14,24 +17,23 @@ export function activate(context: vscode.ExtensionContext) {
 			canSelectFolders: false,
 		};
 
-        const fileUris = await vscode.window.showOpenDialog(options);
-        
-        globalFilePaths = fileUris ? fileUris.map(uri => uri.fsPath) : [];
-        
-        return globalFilePaths;
-	}
+		const fileUris = await vscode.window.showOpenDialog(options);
 
-	
+		globalFilePaths = fileUris ? fileUris.map(uri => uri.fsPath) : [];
+
+		return globalFilePaths;
+	}
 
 	function estraiNomeFileDaPath(filePath: string): string {
 		return filePath.split(/[/\\]/).pop() || '';
 	}
 
-	async function createFile(filePath: string, name: any) {
+	async function createFile_json(filePath: string, name: any) {
 		const nomeFile = estraiNomeFileDaPath(filePath);
 		const value = await vscode.window.showInputBox({
 			prompt: `Inserisci la traduzione per il file ${path.basename(filePath)}`,
 		});
+		
 		let data: { [key: string]: any } = {};
 		try {
 			const currentContent_it = fs.readFileSync(filePath, 'utf8');
@@ -43,16 +45,49 @@ export function activate(context: vscode.ExtensionContext) {
 		fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
 	}
 
+	async function createFile_xml(filePath: string, name: string) {
+		const nomeFile = estraiNomeFileDaPath(filePath);
+		const value = await vscode.window.showInputBox({
+			prompt: `Inserisci la traduzione per il file ${path.basename(filePath)}`,
+		});
+		const obj = {
+			root: {
+				data: {
+					$: { nome: name, 'xml:space': 'preserve' },
+					value: value,
+				}
+			}
+		};
+	
+		// Crea una nuova istanza di Builder per convertire l'oggetto JS in XML
+		const builder = new xml2js.Builder();
+		const xml = builder.buildObject(obj);
+	
+		// Scrivi l'XML nel file specificato
+		fs.writeFile(filePath, xml, 'utf8', (err) => {
+			if (err) {
+				console.error('Errore nella scrittura del file:', err);
+				return;
+			}
+			console.log(`File XML creato con successo in ${filePath}`);
+		});
+}
 	const dataCollector = vscode.commands.registerCommand('label.collectData', async () => {
-
 		vscode.window.showInformationMessage('Inserisci i dati per la traduzione.');
-
-		const name = await vscode.window.showInputBox({ prompt: 'Inserisci la label' });
+		var name = await vscode.window.showInputBox({ prompt: 'Inserisci la label' });
 		if (globalFilePaths.length === 0) {
 			globalFilePaths = await selectFilePath();
 		}
 		for (var i = 0; i < globalFilePaths.length; i++) {
-			await createFile(globalFilePaths[i], name);
+			if (path.extname(globalFilePaths[i]) === '.json') {
+				await createFile_json(globalFilePaths[i], name);
+			} 
+			else if (path.extname(globalFilePaths[i]) === '.xml') {
+				await createFile_xml(globalFilePaths[i], name as string);
+			} 
+			else {
+				await vscode.window.showErrorMessage('Estensione file non supportata.');
+			}
 		}
 		await vscode.window.showInformationMessage('Traduzioni aggiornate.');
 	});
