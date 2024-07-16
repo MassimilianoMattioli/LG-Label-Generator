@@ -6,20 +6,33 @@ import * as fs from 'fs';
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {  
+	async function selectMultipleFiles(): Promise<string[]> {
+	  const fileUris = await vscode.window.showOpenDialog({
+		canSelectMany: true,
+		openLabel: 'Seleziona file'
+	  });
+	
+	  if (fileUris && fileUris.length > 0) {
+		return fileUris.map(uri => uri.fsPath);
+	  } else {
+		return [];
+	  }
+	}
+	
 	async function selectFilePath(): Promise<string> {
-		// Configura le opzioni per lo showOpenDialog
-		const options: vscode.OpenDialogOptions = {
-			canSelectMany: false, // Permette di selezionare un solo file
-			openLabel: 'Seleziona file',
-			canSelectFiles: true, // Permette la selezione di file
-			canSelectFolders: false, // Non permette la selezione di cartelle
-		};
-
-		// Mostra il dialogo di selezione file all'utente
-		const fileUri = await vscode.window.showOpenDialog(options);
-		
-		// Restituisci il path del file selezionato
-		return fileUri && fileUri[0]?.fsPath || '';
+	  // Configura le opzioni per lo showOpenDialog
+	  const options: vscode.OpenDialogOptions = {
+		canSelectMany: false, // Permette di selezionare un solo file
+		openLabel: 'Seleziona file',
+		canSelectFiles: false, // Permette la selezione di file
+		canSelectFolders: false, // Non permette la selezione di cartelle
+	  };
+	
+	  // Mostra il dialogo di selezione file all'utente
+	  const fileUri = await vscode.window.showOpenDialog(options);
+	  
+	  // Restituisci il path del file selezionato
+	  return fileUri && fileUri[0]?.fsPath || '';
 	}
 	// Funzione per creare o aggiornare un file con le traduzioni
 	function createFile(filePath: string, value: any, name: any) {
