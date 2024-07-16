@@ -50,26 +50,45 @@ export function activate(context: vscode.ExtensionContext) {
 		const value = await vscode.window.showInputBox({
 			prompt: `Inserisci la traduzione per il file ${path.basename(filePath)}`,
 		});
-		const obj = {
-			root: {
-				data: {
-					$: { nome: name, 'xml:space': 'preserve' },
-					value: value,
-				}
+	
+		let obj;
+		// Verifica se il file esiste
+		if (fs.existsSync(filePath)) {
+			// Leggi il contenuto esistente
+			const xmlData = fs.readFileSync(filePath, 'utf8');
+			try {
+				// Analizza il contenuto esistente
+				obj = await xml2js.parseStringPromise(xmlData);
+			} catch (error) {
+				console.error("Errore nell'analisi del file XML esistente:", error);
+				return;
 			}
-		};
+		} else {
+			// Inizia con un oggetto vuoto se il file non esiste
+			obj = { root: { data: [] } };
+		}
+	
+		// Aggiungi o modifica i dati
+		const newData = { $: { nome: name, 'xml:space': 'preserve' }, value: value };
+		// Assumi che `data` sia un array, aggiungi il nuovo dato
+		if (!Array.isArray(obj.root.data)) {
+			obj.root.data = [];
+		}
+		obj.root.data.push(newData);
 	
 		// Crea una nuova istanza di Builder per convertire l'oggetto JS in XML
 		const builder = new xml2js.Builder();
 		const xml = builder.buildObject(obj);
 	
-		// Scrivi l'XML nel file specificato
+		// Scrivi l'XML modificato nel file specificato
 		fs.writeFile(filePath, xml, 'utf8', (err) => {
 			if (err) {
 				console.error(err);
+			} else {
+				console.log(`File XML aggiornato con successo in ${filePath}`);
 			}
 		});
-}
+	}
 	const dataCollector = vscode.commands.registerCommand('label.collectData', async () => {
 		vscode.window.showInformationMessage('Inserisci i dati per la traduzione.');
 		var name = await vscode.window.showInputBox({ prompt: 'Inserisci la label' });
