@@ -9,18 +9,6 @@ import * as xml2js from 'xml2js';
 let globalFilePaths: string[] = [];
 
 export function activate(context: vscode.ExtensionContext) {
-	const statusBarIcon = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    statusBarIcon.text = `$(fruit.png) Estensione`; // Sostituisci 'file-code' con l'icona che preferisci
-    statusBarIcon.tooltip = "Clicca per eseguire un'azione"; // Tooltip che appare al passaggio del mouse
-    statusBarIcon.command = "estensione.mioComando"; // Comando da eseguire al clic
-    statusBarIcon.show();
-    context.subscriptions.push(statusBarIcon);
-
-    // Registra il comando
-    let disposable = vscode.commands.registerCommand('estensione.mioComando', () => {
-        vscode.window.showInformationMessage('Azione eseguita!');
-    });
-    context.subscriptions.push(disposable);
 
 	async function selectFilePath(): Promise<string[]> {
 		const options: vscode.OpenDialogOptions = {

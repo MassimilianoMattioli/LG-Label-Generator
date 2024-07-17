@@ -35,7 +35,24 @@
         "command": "label.savePaths",
         "key": "shift+alt+s"
       }
-    ]
+    ],
+    "viewsContainers": {
+        "activitybar": [
+            {
+                "id": "myExtensionSidebar",
+                "title": "My Extension",
+                "icon": "/src/fruit.png"
+            }
+        ]
+    },
+    "views": {
+        "myExtensionSidebar": [
+            {
+                "id": "myCustomView",
+                "name": "My Custom View"
+            }
+        ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
