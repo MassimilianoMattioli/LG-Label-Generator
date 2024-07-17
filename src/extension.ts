@@ -28,11 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
 		return filePath.split(/[/\\]/).pop() || '';
 	}
 
-	async function createFile_json(filePath: string, name: any) {
-		const nomeFile = estraiNomeFileDaPath(filePath);
-		const value = await vscode.window.showInputBox({
-			prompt: `Inserisci la traduzione per il file ${path.basename(filePath, path.extname(filePath))}`,
-		});
+	async function createFile_json(filePath: string, name: any, value : any) {
 		
 		let data: { [key: string]: any } = {};
 		try {
@@ -45,12 +41,7 @@ export function activate(context: vscode.ExtensionContext) {
 		fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
 	}
 
-	async function createFile_xml(filePath: string, name: string) {
-		const nomeFile = estraiNomeFileDaPath(filePath);
-		const value = await vscode.window.showInputBox({
-			prompt: `Inserisci la traduzione per il file ${path.basename(filePath, path.extname(filePath))}`,
-		});
-	
+	async function createFile_xml(filePath: string, name: string, value : any) {
 		let obj;
 		// Verifica se il file esiste
 		if (fs.existsSync(filePath)) {
@@ -89,18 +80,55 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		});
 	}
+
+	function duplicateFiles(globalPath: string[]): { [key: string]: number[] } {
+		let dict_index: { [key: string]: number[] } = {};
+		 for (var i = 0; i < globalFilePaths.length; i++) {
+			var c_path = path.basename(globalPath[i], path.extname(globalPath[i]));
+			for( var j=0; j<globalFilePaths.length; j++){
+				var c_path2 = path.basename(globalPath[j], path.extname(globalPath[j]));
+					if (c_path === c_path2 && i != j) {
+						if (!dict_index[c_path]) {
+							dict_index[c_path] = [];
+						}
+						if (!dict_index[c_path].includes(i)) {
+							dict_index[c_path].push(i);
+						}
+						if (!dict_index[c_path].includes(j)) {
+							dict_index[c_path].push(j);
+						}
+					}
+			}
+		}
+			return dict_index;
+	}
 	const dataCollector = vscode.commands.registerCommand('label.collectData', async () => {
 		vscode.window.showInformationMessage('Inserisci i dati per la traduzione.');
 		var name = await vscode.window.showInputBox({ prompt: 'Inserisci la label' });
 		if (globalFilePaths.length === 0) {
 			globalFilePaths = await selectFilePath();
 		}
-		for (var i = 0; i < globalFilePaths.length; i++) {
-			if (path.extname(globalFilePaths[i]) === '.json') {
-				await createFile_json(globalFilePaths[i], name);
+		var index = duplicateFiles(globalFilePaths);
+		for (var i = 0; i < globalFilePaths.length; i++) {		
+			var nomeFile = path.basename(globalFilePaths[i], path.extname(globalFilePaths[i]));
+			var value = await vscode.window.showInputBox({
+				prompt: `Inserisci la traduzione per il file ${path.basename(globalFilePaths[i], path.extname(globalFilePaths[i]))}`,
+			});
+			if (Object.prototype.hasOwnProperty.call(index, nomeFile)) {
+				var indici = index[nomeFile];
+				for(var j=0; j<indici.length; j++){
+					if (path.extname(globalFilePaths[indici[j]]) === '.json') {
+						await createFile_json(globalFilePaths[indici[j]], name, value);
+					} else if (path.extname(globalFilePaths[indici[j]]) === '.xml') {
+						await createFile_xml(globalFilePaths[indici[j]], name as string, value);
+					}
+				}
+			}
+			else if (path.extname(globalFilePaths[i]) === '.json') {
+				await createFile_json(globalFilePaths[i], name,value);
 			} 
 			else if (path.extname(globalFilePaths[i]) === '.xml') {
-				await createFile_xml(globalFilePaths[i], name as string);
+				await createFile_xml(globalFilePaths[i], name as string,value);
 			} 
 			else {
 				await vscode.window.showErrorMessage('Estensione file non supportata.');
@@ -118,3 +146,4 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(dataCollector, savePaths);
 }
+
