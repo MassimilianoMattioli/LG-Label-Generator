@@ -20,7 +20,11 @@
       {
         "command": "label.savePaths",
         "title": "Salva percorsi"
-      }
+      },
+      {
+        "command": "estensione.mioComando",
+        "title": "Esegui un'azione"
+    }
     ],
     "keybindings": [
       {

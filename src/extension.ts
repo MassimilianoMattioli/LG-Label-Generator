@@ -9,6 +9,19 @@ import * as xml2js from 'xml2js';
 let globalFilePaths: string[] = [];
 
 export function activate(context: vscode.ExtensionContext) {
+	const statusBarIcon = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+    statusBarIcon.text = `$(fruit.png) Estensione`; // Sostituisci 'file-code' con l'icona che preferisci
+    statusBarIcon.tooltip = "Clicca per eseguire un'azione"; // Tooltip che appare al passaggio del mouse
+    statusBarIcon.command = "estensione.mioComando"; // Comando da eseguire al clic
+    statusBarIcon.show();
+    context.subscriptions.push(statusBarIcon);
+
+    // Registra il comando
+    let disposable = vscode.commands.registerCommand('estensione.mioComando', () => {
+        vscode.window.showInformationMessage('Azione eseguita!');
+    });
+    context.subscriptions.push(disposable);
+
 	async function selectFilePath(): Promise<string[]> {
 		const options: vscode.OpenDialogOptions = {
 			canSelectMany: true,
@@ -28,12 +41,21 @@ export function activate(context: vscode.ExtensionContext) {
 		return filePath.split(/[/\\]/).pop() || '';
 	}
 
-	async function createFile_json(filePath: string, name: any, value : any) {
+	async function createFile_json(filePath: string, name: any) {
+		const nomeFile = estraiNomeFileDaPath(filePath);
+		const value = await vscode.window.showInputBox({
+			prompt: `Inserisci la traduzione per il file ${path.basename(filePath, path.extname(filePath))}`,
+		});
 		
 		let data: { [key: string]: any } = {};
 		try {
 			const currentContent_it = fs.readFileSync(filePath, 'utf8');
-			data = JSON.parse(currentContent_it);
+			var existingValue = data[name];
+			console.log(existingValue);
+			if (currentContent_it.includes(name)) {
+				vscode.window.showInformationMessage(`La label '${name}' è già presente nel file con il valore: '${existingValue}'`);
+			}
+				else {data = JSON.parse(currentContent_it);};
 		} catch (error) {
 			// If the file doesn't exist or there's an error in parsing, start with an empty object
 		}
@@ -41,7 +63,12 @@ export function activate(context: vscode.ExtensionContext) {
 		fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
 	}
 
-	async function createFile_xml(filePath: string, name: string, value : any) {
+	async function createFile_xml(filePath: string, name: string) {
+		const nomeFile = estraiNomeFileDaPath(filePath);
+		const value = await vscode.window.showInputBox({
+			prompt: `Inserisci la traduzione per il file ${path.basename(filePath, path.extname(filePath))}`,
+		});
+	
 		let obj;
 		// Verifica se il file esiste
 		if (fs.existsSync(filePath)) {
@@ -65,7 +92,17 @@ export function activate(context: vscode.ExtensionContext) {
 		if (!Array.isArray(obj.root.data)) {
 			obj.root.data = [];
 		}
-		obj.root.data.push(newData);
+		// Controlla se esiste già un elemento con il nome specificato
+		const isNamePresent = obj.root.data.some((element: any) => element.$.nome === name);
+
+		if (isNamePresent) {
+			// Se il nome è già presente, mostra un messaggio di errore
+			const existingElement = obj.root.data.find((element: any) => element.$.nome === name);
+			await vscode.window.showInformationMessage(`Una label con il nome '${name}' è già presente con il valore: '${existingElement.value}'`);
+		} else {
+			// Se il nome non è presente, aggiungi il nuovo dato
+			obj.root.data.push(newData);
+		}
 	
 		// Crea una nuova istanza di Builder per convertire l'oggetto JS in XML
 		const builder = new xml2js.Builder();
@@ -80,55 +117,18 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		});
 	}
-
-	function duplicateFiles(globalPath: string[]): { [key: string]: number[] } {
-		let dict_index: { [key: string]: number[] } = {};
-		 for (var i = 0; i < globalFilePaths.length; i++) {
-			var c_path = path.basename(globalPath[i], path.extname(globalPath[i]));
-			for( var j=0; j<globalFilePaths.length; j++){
-				var c_path2 = path.basename(globalPath[j], path.extname(globalPath[j]));
-					if (c_path === c_path2 && i != j) {
-						if (!dict_index[c_path]) {
-							dict_index[c_path] = [];
-						}
-						if (!dict_index[c_path].includes(i)) {
-							dict_index[c_path].push(i);
-						}
-						if (!dict_index[c_path].includes(j)) {
-							dict_index[c_path].push(j);
-						}
-					}
-			}
-		}
-			return dict_index;
-	}
 	const dataCollector = vscode.commands.registerCommand('label.collectData', async () => {
 		vscode.window.showInformationMessage('Inserisci i dati per la traduzione.');
 		var name = await vscode.window.showInputBox({ prompt: 'Inserisci la label' });
 		if (globalFilePaths.length === 0) {
 			globalFilePaths = await selectFilePath();
 		}
-		var index = duplicateFiles(globalFilePaths);
-		for (var i = 0; i < globalFilePaths.length; i++) {		
-			var nomeFile = path.basename(globalFilePaths[i], path.extname(globalFilePaths[i]));
-			var value = await vscode.window.showInputBox({
-				prompt: `Inserisci la traduzione per il file ${path.basename(globalFilePaths[i], path.extname(globalFilePaths[i]))}`,
-			});
-			if (Object.prototype.hasOwnProperty.call(index, nomeFile)) {
-				var indici = index[nomeFile];
-				for(var j=0; j<indici.length; j++){
-					if (path.extname(globalFilePaths[indici[j]]) === '.json') {
-						await createFile_json(globalFilePaths[indici[j]], name, value);
-					} else if (path.extname(globalFilePaths[indici[j]]) === '.xml') {
-						await createFile_xml(globalFilePaths[indici[j]], name as string, value);
-					}
-				}
-			}
-			else if (path.extname(globalFilePaths[i]) === '.json') {
-				await createFile_json(globalFilePaths[i], name,value);
+		for (var i = 0; i < globalFilePaths.length; i++) {
+			if (path.extname(globalFilePaths[i]) === '.json') {
+				await createFile_json(globalFilePaths[i], name);
 			} 
 			else if (path.extname(globalFilePaths[i]) === '.xml') {
-				await createFile_xml(globalFilePaths[i], name as string,value);
+				await createFile_xml(globalFilePaths[i], name as string);
 			} 
 			else {
 				await vscode.window.showErrorMessage('Estensione file non supportata.');
@@ -146,4 +146,3 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(dataCollector, savePaths);
 }
-
