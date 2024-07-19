@@ -9,51 +9,64 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "label.collectData",
-        "title": "Collect Data"
+      "commands": [
+        {
+          "command": "label.collectData",
+          "title": "Collect Data"
+        },
+        {
+          "command": "label.savePaths",
+          "title": "Salva percorsi"
+        },
+        {
+          "command": "formTreeView.addEntry",
+          "title": "Aggiungi Voce"
       },
       {
-        "command": "label.savePaths",
-        "title": "Salva percorsi"
-      },
-      {
-        "command": "estensione.mioComando",
-        "title": "Esegui un'azione"
-    }
-    ],
-    "keybindings": [
-      {
-        "command": "label.collectData",
-        "key": "shift+alt+l"
-      },
-      {
-        "command": "label.savePaths",
-        "key": "shift+alt+s"
+        "command": "label.showForm",
+        "title": "Mostra Form"
       }
-    ],
+      ],
+      "keybindings": [
+        {
+          "command": "label.collectData",
+          "key": "shift+alt+l"
+        },
+        {
+          "command": "label.savePaths",
+          "key": "shift+alt+s"
+        },
+        {
+          "command": "label.modify",
+          "key": "shift+alt+am"
+        },
+        {
+          "command": "label.showForm",
+          "key": "shift+alt+f"
+        }
+      ],
+      
     "viewsContainers": {
-        "activitybar": [
-            {
-                "id": "myExtensionSidebar",
-                "title": "My Extension",
-                "icon": "/src/fruit.png"
-            }
-        ]
-    },
-    "views": {
-        "myExtensionSidebar": [
-            {
-                "id": "myCustomView",
-                "name": "My Custom View"
-            }
-        ]
-    }
+      "activitybar": [
+          {
+              "id": "formTreeView",
+              "title": "BaNaNa Label Generator",
+              "icon": "/src/fruit.png"
+          }
+      ]
   },
+  "views": {
+      "formTreeView": [
+          {
+              "id": "formTreeView",
+              "name": "Form Tree View"
+          }
+      ]
+  }
+      
+    },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
