@@ -11,6 +11,7 @@ let globalProgram: string;
 let globalLabels: string[] = [];
 
 export function activate(context: vscode.ExtensionContext) {    
+    globalFilePaths = context.globalState.get<string[]>('globalFilePaths') || [];
     class TreeEntry extends vscode.TreeItem {
         public children: TreeEntry[] = []; // Aggiungi la proprietà children
     
@@ -144,6 +145,7 @@ export function activate(context: vscode.ExtensionContext) {
         globalFilePaths = fileUris ? fileUris.map(uri => uri.fsPath) : [];
         globalLabel = globalFilePaths.map(() => []); // Inizializza globalLabel con array vuoti
         formTreeViewProvider.refresh();
+        updateGlobalFilePaths(globalFilePaths);
         return globalFilePaths;
         
     }
@@ -158,6 +160,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         globalProgram = fileUris ? fileUris[0].fsPath : '';
         formTreeViewProvider.refresh();
+        updateFileProgram(globalProgram);
         return globalProgram;
 }
     function extractFileNameFromPath(filePath: string): string {
@@ -173,21 +176,37 @@ export function activate(context: vscode.ExtensionContext) {
         }
         let data: { [key: string]: any } = {};
         try {
+            // Tenta di leggere il contenuto del file
             const currentContent_it = fs.readFileSync(filePath, 'utf8');
-            data = JSON.parse(currentContent_it);
-            const existingValue = data[name];
-            if (existingValue ) {
-                if(sub){
-                data[name as string] = value;
-                fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
-                }
-            }
-            else {
-                data[name as string] = value;
-                fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
+            // Verifica se il file è vuoto o non valido e inizializza `data` di conseguenza
+            if (currentContent_it.trim()) {
+                data = JSON.parse(currentContent_it);
+            } else {
+                data = {}; // Inizializza data come oggetto vuoto se il file è vuoto
             }
         } catch (error) {
+            data = {}; // Inizializza data come oggetto vuoto in caso di errore
         }
+    
+        // Aggiorna o imposta il valore
+        const existingValue = data[name];
+        if (existingValue && sub) {
+            data[name as string] = value;
+        } else {
+            data[name as string] = value;
+        }
+    
+        // Scrive i dati aggiornati nel file, creandolo se non esiste
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
+    }
+
+    function updateGlobalFilePaths(newPaths: string[]) {
+        globalFilePaths = newPaths;
+        context.globalState.update('globalFilePaths', globalFilePaths);
+    }
+    function updateFileProgram(newPaths: string) {
+        globalProgram = newPaths;
+        context.globalState.update('globalProgram', globalProgram);
     }
 
     async function createFile_xml(filePath: string, name: string, value: any, sub: boolean) {
@@ -198,12 +217,13 @@ export function activate(context: vscode.ExtensionContext) {
         if (fs.existsSync(filePath)) {
             const xmlData = fs.readFileSync(filePath, 'utf8');
             if (!xmlData.trim()) {
-                // The file is empty, initialize obj with a basic XML structure
+                // Il file è vuoto, inizializza obj con una struttura XML di base
                 obj = { root: { data: [] } };
             } else {
                 try {
                     obj = await xml2js.parseStringPromise(xmlData);
                 } catch (error) {
+                    obj = { root: { data: [] } }; // Inizializza obj con una struttura XML di base in caso di errore
                 }
             }
         } else {
@@ -245,7 +265,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage('Inserisci i dati per la traduzione.');
         globalname = await vscode.window.showInputBox({ prompt: 'Inserisci la label' });
         if(globalname){
-            await formTreeViewProvider.refresh();
+        await formTreeViewProvider.refresh();
         await formTreeViewProvider.refresh();
         for (let i = 0; i < globalFilePaths.length; i++) {
             const nomeFile = extractFileNameFromPath(globalFilePaths[i]);
@@ -255,11 +275,39 @@ export function activate(context: vscode.ExtensionContext) {
             let isLabelPresent = false;
             let fileContent;
                 fileContent = fs.readFileSync(filePath, 'utf8');
+                if(fileContent === null){
+                    if(fileExtension === '.json'){
+                        let data;
+                        data = {};
+                        fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
+                    }
+                    const parsedXml = await xml2js.parseStringPromise(fileContent);
+                    if(fileExtension === '.xml'){
+                        let data;
+                        data = { root: { data: [] } };
+                        const builder = new xml2js.Builder();
+                        const xml = builder.buildObject(data);
+                        fs.writeFileSync(filePath, xml, 'utf8');
+                    }
+                    else if (parsedXml.root && typeof parsedXml.root === 'object') {
+                        // Assicurati che parsedXml.root.data esista e sia un array
+                        if (!parsedXml.root.data || !Array.isArray(parsedXml.root.data)) {
+                            parsedXml.root.data = []; // Inizializza con un array vuoto se non esiste o non è un array
+                        }
+                }
+            }
                 if (fileExtension === '.json') {
                     const jsonData = JSON.parse(fileContent as string);
                     isLabelPresent = jsonData.hasOwnProperty(globalname);
                 } else if (fileExtension === '.xml') {
                     const parsedXml = await xml2js.parseStringPromise(fileContent);
+                    if(parsedXml === null){
+                        let data;
+                        data = { root: { data: [] } };
+                        const builder = new xml2js.Builder();
+                        const xml = builder.buildObject(data);
+                        fs.writeFileSync(filePath, xml, 'utf8');
+                    }
                     const elements = parsedXml.root.data;
                     if (elements) {
                         for (const el of elements) {
@@ -343,6 +391,7 @@ export function activate(context: vscode.ExtensionContext) {
     const removePath = vscode.commands.registerCommand('label.removePath', async (filePath: string) => {
         globalFilePaths = globalFilePaths.filter(path => path !== filePath);
         formTreeViewProvider.refresh();
+        updateGlobalFilePaths(globalFilePaths);
         vscode.window.showInformationMessage(`Path rimosso: ${filePath}`);
     });
 
@@ -409,7 +458,7 @@ export function activate(context: vscode.ExtensionContext) {
                 if (fileExtension === '.json') {    
                     const jsonData = JSON.parse(fileContent);
                     // Controlla se la proprietà esiste e cambiala con il nuovo nome
-                    if (jsonData.hasOwnProperty(globalname)) {
+                    if (jsonData.hasOwnProperty(globalname) && !jsonData.hasOwnProperty(nome)) {
                         jsonData[nome as string] = jsonData[globalname];
                         delete jsonData[globalname]; // Rimuovi la vecchia proprietà
                 
@@ -421,35 +470,34 @@ export function activate(context: vscode.ExtensionContext) {
                     }
                     
                 } else if (fileExtension === '.xml') {
+                    let vari = true;
                         // Leggi il contenuto del file XML
-                        let vari=false;
                         const fileContent = fs.readFileSync(filePath, 'utf8');
                         // Analizza il contenuto XML in un oggetto JavaScript
                         const parsedXml = await xml2js.parseStringPromise(fileContent);
                         let modified = false;
-
+                
                         // Ottieni gli elementi da modificare (ad esempio, sotto parsedXml.root.data)
                         const elements = parsedXml.root.data;
                         if (elements) {
-                            for(const el of elements){
-                                if(el.$ && el.$.nome === nome){
-                                    el.$.nome = nome;
-                                    vari = true;
-                                }
-                            }
-                            if(!vari){
-                                return;
-                            }
-                            else{
                             for (const el of elements) {
                                 // Controlla se l'elemento ha l'attributo nome da modificare
-                                if (el.$ && el.$.nome === globalname ) {
+                                if (el.$ && el.$.nome === nome) {
+                                    vari=false;
+                                    return;
+                            }
+                            }
+                            if(vari){
+                            for (const el of elements) {
+                                // Controlla se l'elemento ha l'attributo nome da modificare
+                                if (el.$ && el.$.nome === globalname) {
                                     el.$.nome = nome; // Modifica l'attributo nome
                                     modified = true;
-                                }
+                            }
                             }
                         }
-                    };
+                    }
+                
                         if (modified) {
                             // Ricostruisci l'XML dal nuovo oggetto JavaScript
                             const builder = new xml2js.Builder();
@@ -463,7 +511,7 @@ export function activate(context: vscode.ExtensionContext) {
             globalname = nome;
             formTreeViewProvider.refresh();
         }
-
     });
+
     context.subscriptions.push(dataCollector, removePath, addPath, savePaths);
 }

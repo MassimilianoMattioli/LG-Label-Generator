@@ -32,7 +32,7 @@ Questo è il README per la tua estensione "Label Generator". Dopo aver scritto u
 ## Utilizzo
 
 - **label.collectData**:
-    Questo è il comando principale su cui si basa l'estensione. Appena utilizzato chiederà il nome che si vuole associare alla label.
+    Questo è il comando principale su cui si basa l'estensione. Appena utilizzato chiederà il nome che si vuole associare alla label, successivamente verranno memorizzati i percorsi.
     Successivamente verifica la presenza dell'etichetta all'interno del file selezionato. Se è presente riporta il valore, se assente chiederà 
     quale valore associare alla label. Acquisito il valore verifica la tipologia di file: 
         - se XML o JSON creerà la label, 
@@ -42,6 +42,7 @@ Questo è il README per la tua estensione "Label Generator". Dopo aver scritto u
     E' disponibile tra i comandi di VS code con il nome di: "Collect Data"
     **N.B: Se non sono presenti i percorsi del file dove si vuole aggiungere la label o quello dello script personalizzato, il comando chiederà  
     di inserli.
+    Nel caso i file non siano configurati, il programma eseguirà questa operazione in automatico.
 
 - **label.savePath**:
     Questo comando si occupa di selezionare i percorsi dei file in cui si vuole inserire la label, facendo riselezionare tutti i percorsi file  
