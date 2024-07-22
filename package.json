@@ -2,7 +2,7 @@
   "name": "label",
   "displayName": "LG-Label Generator",
   "description": "",
-  "icon": "label/src/icon.png",
+  "icon": "src/icon.png",
   "version": "1.0.0",
   "publisher": "MassimilianoMattioli",
   "engines": {
