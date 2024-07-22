@@ -2,14 +2,19 @@
   "name": "label",
   "displayName": "LG-Label Generator",
   "description": "",
-  "icon": "src/icon.png",
-  "version": "0.0.1",
+  "icon": "label/src/icon.png",
+  "version": "1.0.0",
+  "publisher": "MassimilianoMattioli",
   "engines": {
     "vscode": "^1.91.0"
   },
   "categories": [
     "Other"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MassimilianoMattioli/LG-Label-Generator.git"
+  },
   "main": "./out/extension.js",
   "contributes": {
       "commands": [
