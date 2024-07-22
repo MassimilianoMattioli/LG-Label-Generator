@@ -1,7 +1,8 @@
 {
   "name": "label",
-  "displayName": "Label",
+  "displayName": "LG-Label Generator",
   "description": "",
+  "icon": "src/icon.png",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.91.0"
@@ -27,6 +28,10 @@
       {
         "command": "label.showForm",
         "title": "Mostra Form"
+      },
+      {
+        "command": "label.saveProgram",
+        "title": "Salva Programma"
       }
       ],
       "keybindings": [
@@ -43,8 +48,8 @@
           "key": "shift+alt+am"
         },
         {
-          "command": "label.showForm",
-          "key": "shift+alt+f"
+          "command": "label.saveProgram",
+          "key": "shift+alt+p"
         }
       ],
       
@@ -52,8 +57,8 @@
       "activitybar": [
           {
               "id": "formTreeView",
-              "title": "BaNaNa Label Generator",
-              "icon": "/src/fruit.png"
+              "title": "LG-Label Generator",
+              "icon": "/src/icons8-etichetta-50.png"
           }
       ]
   },
@@ -61,7 +66,7 @@
       "formTreeView": [
           {
               "id": "formTreeView",
-              "name": "Form Tree View"
+              "name": ""
           }
       ]
   }

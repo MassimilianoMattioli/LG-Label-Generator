@@ -1,71 +1,73 @@
-# label README
+# Label Generator README
 
-This is the README for your extension "label". After writing up a brief description, we recommend including the following sections.
+Questo è il README per la tua estensione "Label Generator". Dopo aver scritto una breve descrizione, ti consigliamo di includere le seguenti sezioni.
 
-## Features
+## Requisiti
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- Visual Studio Code
+- Node.js e npm (per lo sviluppo e il testing)
 
-For example if there is an image subfolder under your extension project workspace:
 
-\!\[feature X\]\(images/feature-x.png\)
+## Funzionalità
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- **Visualizzazione ad albero**: Visualizza i percorsi dei file e le etichette in una vista ad albero nella barra laterale di VS code.
+- **Gestione etichette**: Aggiungi, cerca e modifica etichette nei file JSON e XML.
+- **Esecuzione script**: Esegui script personalizzati per elaborare le etichette.
 
-## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## Comandi Disponibili
 
-## Extension Settings
+- **label.collectData**: Gestisce la raccolta dati e la ricerca delle etichette per la traduzione delle etichette.
+- **label.savePaths**: Salva i percorsi dei file selezionati.
+- **label.saveProgram**: Salva il percorso di uno script personalizzato.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
 
-For example:
+## Shortcut disponibili
 
-This extension contributes the following settings:
+- **label.collectData**: shift+alt+l.
+- **label.savePaths**:shift+alt+s .
+- **label.saveProgram**: shift+alt+p .
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
 
-## Known Issues
+## Utilizzo
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+- **label.collectData**:
+    Questo è il comando principale su cui si basa l'estensione. Appena utilizzato chiederà il nome che si vuole associare alla label.
+    Successivamente verifica la presenza dell'etichetta all'interno del file selezionato. Se è presente riporta il valore, se assente chiederà 
+    quale valore associare alla label. Acquisito il valore verifica la tipologia di file: 
+        - se XML o JSON creerà la label, 
+        - se diverso restituirà un errore e interromperà l'esecuzione del comando.
+    Inoltre fornisce la possibilità di eseguire script personalizzati.
+    Tutte le informazioni immesse saranno disponibili nel contenitore: "Label inserita:"
+    E' disponibile tra i comandi di VS code con il nome di: "Collect Data"
+    **N.B: Se non sono presenti i percorsi del file dove si vuole aggiungere la label o quello dello script personalizzato, il comando chiederà  
+    di inserli.
 
-## Release Notes
+- **label.savePath**:
+    Questo comando si occupa di selezionare i percorsi dei file in cui si vuole inserire la label, facendo riselezionare tutti i percorsi file  
+    che si vogliono utilizare. Si esegue in automantico quando non sono presenti file selezionati.
+    E' disponibile tra i comandi di VS code con il nome di: "Salva percorsi"
 
-Users appreciate release notes as you update your extension.
+- **label.saveProgram**:
+    Questo comando si occupa di selezionare il percorso del file in cui è presente lo script personalizzato.Si esegue in automantico quando si  
+    vuole eseguire uno script ma non si è selezionato. 
+    E' disponibile tra i comandi di VS code con il nome di: "Salva programma"
+
+- **Altri comandi**:
+    Sono presenti 3 comandi grafici:
+        - se si clicca su un percorso dei file, presenti nella barra laterale, si andrà a deselezionare ed eliminare dall'utilizzo              
+          dell'estensione il percorso,
+        - se si clicca sul percorso del file dello script personalizzato, si andrà ad attivare il comando label.saveProgram
+        - se si clicca sul valore di una label presente all'interno della sezione "Label inserita:", potro modificare il valore dell'etichetà   
+          nel file corrispondente.
+
+## Note sulla versione
 
 ### 1.0.0
 
-Initial release of ...
+Prima versione di Label Generator
 
-### 1.0.1
 
-Fixed issue #.
+## Seguire le linee guida per le estensioni
+* [Linee guida per le estensioni](https://code.visualstudio.com/api/references/extension-guidelines)
 
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
