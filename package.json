@@ -4,7 +4,6 @@
   "description": "",
   "publisher": "MassimilianoMattioli",
   "version": "1.0.1",
-
   "icon": "icona.png",
   "engines": {
     "vscode": "^1.91.0"
