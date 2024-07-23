@@ -176,28 +176,29 @@ export function activate(context: vscode.ExtensionContext) {
         }
         let data: { [key: string]: any } = {};
         try {
-            // Tenta di leggere il contenuto del file
             const currentContent_it = fs.readFileSync(filePath, 'utf8');
-            // Verifica se il file è vuoto o non valido e inizializza `data` di conseguenza
-            if (currentContent_it.trim()) {
-                data = JSON.parse(currentContent_it);
+            // Verifica se il contenuto è vuoto o contiene solo spazi bianchi
+            if (!currentContent_it.trim()) {
+                data = {};
             } else {
-                data = {}; // Inizializza data come oggetto vuoto se il file è vuoto
+                data = JSON.parse(currentContent_it);
+            }
+            const existingValue = data[name];
+            if (existingValue) {
+                if (sub) {
+                    data[name as string] = value;
+                    fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
+                } else {
+                    vscode.window.showInformationMessage(`The label '${name}' already exists in the file with the value: '${existingValue}'`);
+                }
+            } else {
+                data[name as string] = value;
+                fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
             }
         } catch (error) {
-            data = {}; // Inizializza data come oggetto vuoto in caso di errore
-        }
-    
-        // Aggiorna o imposta il valore
-        const existingValue = data[name];
-        if (existingValue && sub) {
             data[name as string] = value;
-        } else {
-            data[name as string] = value;
+            fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
         }
-    
-        // Scrive i dati aggiornati nel file, creandolo se non esiste
-        fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
     }
 
     function updateGlobalFilePaths(newPaths: string[]) {
@@ -260,8 +261,10 @@ export function activate(context: vscode.ExtensionContext) {
         if (globalFilePaths.length === 0) {
             globalFilePaths = await selectFilePath();
         }
-        globalLabel.splice(0, globalLabel.length);
-        globalLabels.splice(0, globalLabels.length);
+        if(globalLabel.length !== 0){
+        globalLabel.splice(0, globalLabel.length);}
+        if(globalLabels.length !== 0){
+        globalLabels.splice(0, globalLabels.length);}
         vscode.window.showInformationMessage('Inserisci i dati per la traduzione.');
         globalname = await vscode.window.showInputBox({ prompt: 'Inserisci la label' });
         if(globalname){
