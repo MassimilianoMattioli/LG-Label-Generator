@@ -2,9 +2,10 @@
   "name": "label",
   "displayName": "LG-Label Generator",
   "description": "",
-  "version": "1.0.1",
   "publisher": "MassimilianoMattioli",
-  "icon": "scr/icona.png",
+  "version": "1.0.1",
+
+  "icon": "icona.png",
   "engines": {
     "vscode": "^1.91.0"
   },
