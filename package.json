@@ -63,7 +63,7 @@
           {
               "id": "formTreeView",
               "title": "LG-Label Generator",
-              "icon": "/src/icons8-etichetta-50.png"
+              "icon": "icons8-etichetta-50.png"
           }
       ]
   },
