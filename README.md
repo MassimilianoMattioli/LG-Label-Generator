@@ -68,6 +68,8 @@ Questo è il README per la tua estensione "Label Generator". Dopo aver scritto u
 
 Prima versione di Label Generator
 
+### 1.0.1
+Correzione di alcuni bug e aggiunta dell'icona
 
 ## Seguire le linee guida per le estensioni
 * [Linee guida per le estensioni](https://code.visualstudio.com/api/references/extension-guidelines)
