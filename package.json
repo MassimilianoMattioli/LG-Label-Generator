@@ -3,7 +3,7 @@
   "displayName": "LG-Label Generator",
   "description": "",
   "publisher": "MassimilianoMattioli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "icon": "icona.png",
   "engines": {
     "vscode": "^1.91.0"
