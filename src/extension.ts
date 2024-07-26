@@ -83,6 +83,8 @@ export function activate(context: vscode.ExtensionContext) {
         });
     }
 
+   
+
     async function getProgramEntries(): Promise<TreeEntry[]> {
         const fileName = extractFileNameFromPath(globalProgram);
         const program  : TreeEntry[] = [];
@@ -114,6 +116,7 @@ export function activate(context: vscode.ExtensionContext) {
         }, 'nameItem'));
         }
         for (let i = 0; i < globalFilePaths.length; i++) {
+            if(globalLabel.length !== 0){
             const filePath = globalFilePaths[i];
             const labels = globalLabel[i];
             for (let label of labels) {
@@ -126,6 +129,7 @@ export function activate(context: vscode.ExtensionContext) {
                 }, 'nameItem'));
             }
         }
+    }
         return entries;
     }
 
@@ -149,6 +153,7 @@ export function activate(context: vscode.ExtensionContext) {
         return globalFilePaths;
         
     }
+    
     async function selectProgram() {
         const options: vscode.OpenDialogOptions = {
             canSelectMany: false,
@@ -177,7 +182,6 @@ export function activate(context: vscode.ExtensionContext) {
         let data: { [key: string]: any } = {};
         try {
             const currentContent_it = fs.readFileSync(filePath, 'utf8');
-            // Verifica se il contenuto è vuoto o contiene solo spazi bianchi
             if (!currentContent_it.trim()) {
                 data = {};
             } else {
@@ -187,17 +191,16 @@ export function activate(context: vscode.ExtensionContext) {
             if (existingValue) {
                 if (sub) {
                     data[name as string] = value;
-                    fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
                 } else {
                     vscode.window.showInformationMessage(`The label '${name}' already exists in the file with the value: '${existingValue}'`);
+                    return; // Uscita anticipata se la chiave esiste e sub è false
                 }
             } else {
                 data[name as string] = value;
-                fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
             }
-        } catch (error) {
-            data[name as string] = value;
             fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to update JSON file: ${error}`);
         }
     }
 
@@ -210,7 +213,7 @@ export function activate(context: vscode.ExtensionContext) {
         context.globalState.update('globalProgram', globalProgram);
     }
 
-    async function createFile_xml(filePath: string, name: string, value: any, sub: boolean) {
+    async function createFile_xml(filePath: string, name: string, value: string, sub: boolean) {
         if (!value) {
             return;
         }
@@ -223,6 +226,9 @@ export function activate(context: vscode.ExtensionContext) {
             } else {
                 try {
                     obj = await xml2js.parseStringPromise(xmlData);
+                    if (typeof obj === 'string') {
+                        obj = { root: { data: [] } }; // Inizializza obj con una struttura XML di base se è una stringa
+                    }
                 } catch (error) {
                     obj = { root: { data: [] } }; // Inizializza obj con una struttura XML di base in caso di errore
                 }
@@ -230,23 +236,24 @@ export function activate(context: vscode.ExtensionContext) {
         } else {
             obj = { root: { data: [] } };
         }
-
+    
         const newData = { $: { nome: name, 'xml:space': 'preserve' }, value: value };
         if (!Array.isArray(obj.root.data)) {
             obj.root.data = [];
         }
         const isNamePresent = obj.root.data.some((element: any) => element.$.nome === name);
-
+    
         if (isNamePresent) {
-            if(sub){
-            const existingElement = obj.root.data.find((element: any) => element.$.nome === name);
-            obj.root.data.push(newData);}
+            if (sub) {
+                const existingElement = obj.root.data.find((element: any) => element.$.nome === name);
+                obj.root.data.push(newData);
+            }
         } else {
             obj.root.data.push(newData);
         }
         const builder = new xml2js.Builder();
         const xml = builder.buildObject(obj);
-
+    
         fs.writeFile(filePath, xml, 'utf8', (err) => {
             if (err) {
                 console.error(err);
@@ -254,6 +261,39 @@ export function activate(context: vscode.ExtensionContext) {
                 console.log(`File XML aggiornato con successo in ${filePath}`);
             }
         });
+    }
+    async function createFile_resx(filePath: string, name: string, value: string, sub: boolean) {
+        if (!value) {
+            return;
+        }
+    
+        let data: any = { root: { data: [] } };
+        const parser = new xml2js.Parser();
+        const builder = new xml2js.Builder();
+    
+        try {
+            if (fs.existsSync(filePath)) {
+                const currentContent = fs.readFileSync(filePath, 'utf8');
+                data = await parser.parseStringPromise(currentContent);
+            }
+    
+            const existingEntry = data.root.data.find((entry: any) => entry.$.name === name);
+            if (existingEntry) {
+                if (sub) {
+                    existingEntry.value = [value];
+                } else {
+                    vscode.window.showInformationMessage(`The label '${name}' already exists in the file with the value: '${existingEntry.value[0]}'`);
+                    return; // Uscita anticipata se la chiave esiste e sub è false
+                }
+            } else {
+                data.root.data.push({ $: { name: name }, value: [value] });
+            }
+    
+            const xml = builder.buildObject(data);
+            fs.writeFileSync(filePath, xml, 'utf8');
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to update RESX file: ${error}`);
+        }
     }
 
 
@@ -265,10 +305,10 @@ export function activate(context: vscode.ExtensionContext) {
         globalLabel.splice(0, globalLabel.length);}
         if(globalLabels.length !== 0){
         globalLabels.splice(0, globalLabels.length);}
+
         vscode.window.showInformationMessage('Inserisci i dati per la traduzione.');
         globalname = await vscode.window.showInputBox({ prompt: 'Inserisci la label' });
         if(globalname){
-        await formTreeViewProvider.refresh();
         await formTreeViewProvider.refresh();
         for (let i = 0; i < globalFilePaths.length; i++) {
             const nomeFile = extractFileNameFromPath(globalFilePaths[i]);
@@ -278,27 +318,7 @@ export function activate(context: vscode.ExtensionContext) {
             let isLabelPresent = false;
             let fileContent;
                 fileContent = fs.readFileSync(filePath, 'utf8');
-                if(fileContent === null){
-                    if(fileExtension === '.json'){
-                        let data;
-                        data = {};
-                        fs.writeFileSync(filePath, JSON.stringify(data, null, 4), 'utf8');
-                    }
-                    const parsedXml = await xml2js.parseStringPromise(fileContent);
-                    if(fileExtension === '.xml'){
-                        let data;
-                        data = { root: { data: [] } };
-                        const builder = new xml2js.Builder();
-                        const xml = builder.buildObject(data);
-                        fs.writeFileSync(filePath, xml, 'utf8');
-                    }
-                    else if (parsedXml.root && typeof parsedXml.root === 'object') {
-                        // Assicurati che parsedXml.root.data esista e sia un array
-                        if (!parsedXml.root.data || !Array.isArray(parsedXml.root.data)) {
-                            parsedXml.root.data = []; // Inizializza con un array vuoto se non esiste o non è un array
-                        }
-                }
-            }
+                if(!(fileContent === null)){
                 if (fileExtension === '.json') {
                     const jsonData = JSON.parse(fileContent as string);
                     isLabelPresent = jsonData.hasOwnProperty(globalname);
@@ -326,7 +346,7 @@ export function activate(context: vscode.ExtensionContext) {
                 if (fileExtension === '.json') {
                     const jsonData = JSON.parse(fileContent as string);
                     labelValue = jsonData[globalname]; // Prendi il valore della label dal JSON
-                } else if (fileExtension === '.xml') {                    // Utilizza xml2js per ottenere il valore della label dall'XML
+                } else if (fileExtension === '.xml'|| fileExtension === '.resx') {                    // Utilizza xml2js per ottenere il valore della label dall'XML
                     const parsedXml = await xml2js.parseStringPromise(fileContent as string);
                     // Assumi una struttura XML semplice e che globalname sia un attributo di un elemento
                     const elements = parsedXml.root.data;
@@ -343,7 +363,8 @@ export function activate(context: vscode.ExtensionContext) {
                 globalLabel.push([labelValue]); 
                 await formTreeViewProvider.refresh();
             }
-            else{
+        }
+            
                 const t = await vscode.window.showInputBox({
                     prompt: `Inserisci la traduzione per il file ${path.basename(globalFilePaths[i], path.extname(globalFilePaths[i]))}`,
                 });
@@ -352,13 +373,15 @@ export function activate(context: vscode.ExtensionContext) {
                 await formTreeViewProvider.refresh();
                 if (path.extname(globalFilePaths[i]) === '.json') {
                     await createFile_json(globalFilePaths[i], globalname, globalLabels[i] as string, false);
-                } else if (path.extname(globalFilePaths[i]) === '.xml') {
+                } else if (path.extname(globalFilePaths[i]) === '.xml'|| path.extname(globalFilePaths[i]) === '.resx') {
                     await createFile_xml(globalFilePaths[i], globalname as string, globalLabels[i] as string, false);
-                } else {
+                } else if(path.extname(globalFilePaths[i]) === '.resx'){
+                    await createFile_resx(globalFilePaths[i], globalname as string, globalLabels[i] as string, false);
+                }
+                else {
                     await vscode.window.showErrorMessage('Estensione file non supportata.');
                 }
                 await formTreeViewProvider.refresh();
-            }
         }
         await formTreeViewProvider.refresh();
         // Chiedi all'utente se desidera eseguire uno script personalizzato
