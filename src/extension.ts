@@ -268,13 +268,20 @@ export function activate(context: vscode.ExtensionContext) {
         }
     
         let data: any = { root: { data: [] } };
-        const parser = new xml2js.Parser();
-        const builder = new xml2js.Builder();
+        const parser = new xml2js.Parser({ preserveChildrenOrder: true, explicitChildren: true, charsAsChildren: true, includeWhiteChars: true });
+        const builder = new xml2js.Builder({ renderOpts: { pretty: true } });
     
         try {
             if (fs.existsSync(filePath)) {
                 const currentContent = fs.readFileSync(filePath, 'utf8');
-                data = await parser.parseStringPromise(currentContent);
+                if (currentContent.trim()) {
+                    try {
+                        data = await parser.parseStringPromise(currentContent);
+                    } catch (parseError) {
+                        // Se il parsing fallisce, manteniamo data come { root: { data: [] } }
+                        console.error(`Errore di parsing del file XML: ${parseError}`);
+                    }
+                }
             }
     
             const existingEntry = data.root.data.find((entry: any) => entry.$.name === name);

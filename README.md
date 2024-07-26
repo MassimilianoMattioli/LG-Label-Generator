@@ -73,7 +73,7 @@ Correzione di alcuni bug e aggiunta dell'icona.
 Correzzioni di alcuni bug segnalati dagli utenti.
 
 ## 1.0.3
-Implementazione per file .resx
+Implementazione per file .resx, alla versione attuale cancella i commenti nei file. Prossimamente una nuova versione dove sarà corretto il bug.
 
 ## Seguire le linee guida per le estensioni
 * [Linee guida per le estensioni](https://code.visualstudio.com/api/references/extension-guidelines)
