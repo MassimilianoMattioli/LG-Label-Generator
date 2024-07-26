@@ -3,7 +3,7 @@
   "displayName": "LG-Label Generator",
   "description": "",
   "publisher": "MassimilianoMattioli",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "icon": "icona.png",
   "engines": {
     "vscode": "^1.91.0"
@@ -17,18 +17,18 @@
   },
   "main": "./out/extension.js",
   "contributes": {
-      "commands": [
-        {
-          "command": "label.collectData",
-          "title": "Collect Data"
-        },
-        {
-          "command": "label.savePaths",
-          "title": "Salva percorsi"
-        },
-        {
-          "command": "formTreeView.addEntry",
-          "title": "Aggiungi Voce"
+    "commands": [
+      {
+        "command": "label.collectData",
+        "title": "Collect Data"
+      },
+      {
+        "command": "label.savePaths",
+        "title": "Salva percorsi"
+      },
+      {
+        "command": "formTreeView.addEntry",
+        "title": "Aggiungi Voce"
       },
       {
         "command": "label.showForm",
@@ -38,45 +38,43 @@
         "command": "label.saveProgram",
         "title": "Salva Programma"
       }
-      ],
-      "keybindings": [
-        {
-          "command": "label.collectData",
-          "key": "shift+alt+l"
-        },
-        {
-          "command": "label.savePaths",
-          "key": "shift+alt+s"
-        },
-        {
-          "command": "label.modify",
-          "key": "shift+alt+am"
-        },
-        {
-          "command": "label.saveProgram",
-          "key": "shift+alt+p"
-        }
-      ],
-      
+    ],
+    "keybindings": [
+      {
+        "command": "label.collectData",
+        "key": "shift+alt+l"
+      },
+      {
+        "command": "label.savePaths",
+        "key": "shift+alt+s"
+      },
+      {
+        "command": "label.modify",
+        "key": "shift+alt+am"
+      },
+      {
+        "command": "label.saveProgram",
+        "key": "shift+alt+p"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
-          {
-              "id": "formTreeView",
-              "title": "LG-Label Generator",
-              "icon": "icons8-etichetta-50.png"
-          }
+        {
+          "id": "formTreeView",
+          "title": "LG-Label Generator",
+          "icon": "icons8-etichetta-50.png"
+        }
       ]
-  },
-  "views": {
-      "formTreeView": [
-          {
-              "id": "formTreeView",
-              "name": ""
-          }
-      ]
-  }
-      
     },
+    "views": {
+      "formTreeView": [
+        {
+          "id": "formTreeView",
+          "name": ""
+        }
+      ]
+    }
+  },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
