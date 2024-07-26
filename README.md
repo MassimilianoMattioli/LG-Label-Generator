@@ -78,3 +78,6 @@ Implementazione per file .resx
 ## Seguire le linee guida per le estensioni
 * [Linee guida per le estensioni](https://code.visualstudio.com/api/references/extension-guidelines)
 
+## Licenza
+Questo progetto è distribuito sotto la [MT License](/out/LICENSE)
+
