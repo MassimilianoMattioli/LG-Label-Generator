@@ -1,6 +1,5 @@
 # Label Generator README
 
-Questo è il README per la tua estensione "Label Generator". Dopo aver scritto una breve descrizione, ti consigliamo di includere le seguenti sezioni.
 
 ## Requisiti
 
@@ -75,8 +74,6 @@ Correzzioni di alcuni bug segnalati dagli utenti.
 ## 1.0.3
 Implementazione per file .resx, alla versione attuale cancella i commenti nei file. Prossimamente una nuova versione dove sarà corretto il bug.
 
-## Seguire le linee guida per le estensioni
-* [Linee guida per le estensioni](https://code.visualstudio.com/api/references/extension-guidelines)
 
 ## Licenza
 Questo progetto è distribuito sotto la [MT License](/out/LICENSE)
